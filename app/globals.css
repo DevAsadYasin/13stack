@@ -1,0 +1,211 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #0091ff;
+  --color-text: #ffffff;
+  --color-text-02: #f6f7f9;
+  --color-text-03: #bebebe;
+  --color-bg-primary: #0a0a0a;
+  --color-card-bg: #171717;
+  --color-bg-brown: #071e33;
+  --color-border-01: #f6f7f9;
+  --color-green: #00b61e;
+
+  --page-padding-x: 1rem;
+  --page-max-width: 85.5rem;
+
+  --page-side-inset: max(
+    var(--page-padding-x),
+    calc((100vw - var(--page-max-width)) / 2)
+  );
+  --nav-side-inset: calc(var(--page-side-inset) * 0.7);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --page-padding-x: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --page-padding-x: 2rem;
+  }
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-text: var(--color-text);
+  --color-text-02: var(--color-text-02);
+  --color-text-03: var(--color-text-03);
+  --color-bg-primary: var(--color-bg-primary);
+  --color-card-bg: var(--color-card-bg);
+  --color-bg-brown: var(--color-bg-brown);
+  --color-border-01: var(--color-border-01);
+  --color-green: var(--color-green);
+  --font-sans: var(--font-inter);
+  --spacing-gutter: var(--page-padding-x);
+}
+
+@utility px-gutter {
+  padding-inline: var(--page-padding-x);
+}
+
+@utility px-nav-gutter {
+  padding-inline: var(--nav-side-inset);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text);
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 70s linear infinite;
+}
+
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+.animate-dash-flow {
+  animation: dash-flow 1.2s linear infinite;
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 28px rgba(0, 145, 255, 0.45);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 52px rgba(0, 145, 255, 0.85);
+    transform: scale(1.04);
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes hub-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 36px rgba(0, 145, 255, 0.5),
+      0 0 72px rgba(0, 145, 255, 0.22);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow:
+      0 0 56px rgba(0, 145, 255, 0.85),
+      0 0 100px rgba(0, 145, 255, 0.35);
+    transform: scale(1.045);
+  }
+}
+
+.animate-hub-breathe {
+  animation: hub-breathe 3.6s ease-in-out infinite;
+}
+
+@keyframes hero-orbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hero-orbit-counter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.animate-hero-orbit {
+  animation: hero-orbit 72s linear infinite;
+}
+
+.animate-hero-orbit-counter {
+  animation: hero-orbit-counter 72s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hub-breathe,
+  .animate-hero-orbit,
+  .animate-hero-orbit-counter,
+  .animate-glow-pulse,
+  .animate-spin-slow,
+  .animate-marquee,
+  .animate-dash-flow {
+    animation: none !important;
+  }
+}
+
+@keyframes orbit-cw {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(14deg);
+  }
+}
+
+@keyframes orbit-ccw {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(-14deg);
+  }
+}
+
+@keyframes counter-cw {
+  from {
+    transform: translate(50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(50%, -50%) rotate(-14deg);
+  }
+}
+
+@keyframes counter-ccw {
+  from {
+    transform: translate(50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(50%, -50%) rotate(14deg);
+  }
+}
