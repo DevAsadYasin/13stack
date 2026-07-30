@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 100" width="1680" height="400" role="img" aria-label="13 Stack">
+  <title>13 Stack</title>
+  <path fill-rule="evenodd" clip-rule="evenodd" fill="#FFFFFF" d="M6,0 H94 A6,6 0 0 1 100,6 V94 A6,6 0 0 1 94,100 H6 A6,6 0 0 1 0,94 V6 A6,6 0 0 1 6,0 Z M22,0 H31 V100 H22 Z M31,28 H100 V37 H31 Z M50,61 H100 V70 H50 Z"></path>
+  <text x="132" y="58" font-family="Space Grotesk, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" letter-spacing="-1" fill="#FFFFFF">13 Stack</text>
+  <text x="134" y="82" font-family="IBM Plex Mono, monospace" font-size="15" letter-spacing="3.2" fill="#FFFFFF" opacity="0.55">AI STUDIO</text>
+</svg>
