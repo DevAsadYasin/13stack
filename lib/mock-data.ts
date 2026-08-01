@@ -5,6 +5,7 @@ export const navigation = {
     { label: "Services", href: "/services" },
     { label: "Work", href: "/work" },
     { label: "Products", href: "/products" },
+    { label: "Build log", href: "/blog" },
   ],
   cta: "Book a consultation",
 };

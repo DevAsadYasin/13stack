@@ -20,7 +20,10 @@ function NavLinks({
   return (
     <>
       {navigation.links.map((link) => {
-        const isActive = pathname === link.href;
+        const isActive =
+          link.href === "/"
+            ? pathname === "/"
+            : pathname === link.href || pathname.startsWith(`${link.href}/`);
         return (
           <Link
             key={link.href}
