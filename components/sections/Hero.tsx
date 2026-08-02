@@ -9,7 +9,7 @@ import { HeroRule } from "@/components/ui/HeroRule";
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[calc(100svh-4rem)] flex-col items-center overflow-clip px-gutter pt-16 pb-[min(40vw,13rem)] md:h-[calc(100svh-4rem)] md:max-h-[54rem] md:min-h-0 md:pt-[clamp(3rem,8vmin,5.5rem)] md:pb-0">
+    <section className="relative flex min-h-[calc(100svh-4rem)] flex-col items-center overflow-clip px-gutter pt-16 pb-[min(40vw,13rem)] md:h-[calc(100svh-4rem)] md:max-h-[54rem] md:min-h-0 md:pt-[clamp(1.25rem,3.5vmin,2.25rem)] md:pb-0">
       <motion.div
         className="relative z-10 flex w-full max-w-[680px] flex-col items-center gap-6 text-center sm:gap-7 md:gap-8 md:pb-[clamp(1.5rem,5.5vmin,4.25rem)]"
         initial="hidden"
@@ -18,7 +18,7 @@ export function Hero() {
       >
         <motion.p
           variants={fadeUp}
-          className="max-w-[24rem] text-[11px] tracking-[0.18em] text-primary uppercase sm:text-xs"
+          className="whitespace-nowrap text-[11px] tracking-[0.18em] text-primary uppercase sm:text-xs"
         >
           {hero.eyebrow}
         </motion.p>
@@ -55,7 +55,7 @@ export function Hero() {
 
         <motion.div
           variants={fadeUp}
-          className="grid w-full max-w-[22rem] grid-cols-3 gap-3 border-t border-white/10 pt-5 sm:max-w-[28rem] sm:gap-5 sm:pt-6"
+          className="grid w-full max-w-[22rem] grid-cols-3 gap-3 border-t border-white/10 pt-5 md:hidden"
         >
           {hero.points.map((point) => (
             <div key={point.label} className="flex flex-col items-center gap-1">
