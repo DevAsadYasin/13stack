@@ -12,20 +12,22 @@ export function SectionHeading({
 }) {
   return (
     <div
-      className={`flex max-w-[600px] flex-col gap-4 ${
+      className={`flex max-w-[600px] flex-col gap-3 sm:gap-4 ${
         align === "center"
           ? "items-center text-center"
           : "items-start text-left"
       }`}
     >
       <RevealItem>
-        <h2 className="text-3xl leading-tight font-medium tracking-tight sm:text-4xl">
+        <h2 className="text-[1.75rem] leading-tight font-medium tracking-tight sm:text-4xl">
           {title}
         </h2>
       </RevealItem>
       {subtitle && (
         <RevealItem>
-          <p className="text-base leading-relaxed text-text-03">{subtitle}</p>
+          <p className="text-[0.9375rem] leading-relaxed text-text-03 sm:text-base">
+            {subtitle}
+          </p>
         </RevealItem>
       )}
     </div>

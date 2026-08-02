@@ -104,7 +104,7 @@ function OrbitIcon({
 export function HeroGlobeVisual() {
   return (
     <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center">
-      <div className="relative size-[min(88vw,clamp(18rem,42vw,31.625rem))] translate-y-[46%]">
+      <div className="relative size-[min(82vw,clamp(15.5rem,36vmin,28rem))] translate-y-[46%] sm:size-[min(88vw,clamp(18rem,42vw,31.625rem))]">
         <div
           className="absolute bottom-[10%] left-1/2 h-[55%] w-[55%] -translate-x-1/2 rounded-full bg-primary/70 blur-[70px]"
           aria-hidden

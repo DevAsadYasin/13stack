@@ -68,16 +68,71 @@ const iconFills = ["#ffffff", "#ffffff", "#0091ff"] as const;
 
 type Pt = { x: number; y: number };
 
+type ProgressAxis = {
+  start: number;
+  branch: number;
+  sub: number;
+  steps: readonly number[];
+  join: number;
+  prod: number;
+};
+
+type LaneAxis = {
+  ml: number;
+  genai: number;
+  stack: number;
+  auto: number;
+};
+
+type PlacedNode = {
+  key: string;
+  x: number;
+  y: number;
+  title: string;
+  icon: string;
+  index: number;
+  delay: number;
+  final?: boolean;
+  hub?: boolean;
+  merge?: boolean;
+};
+
+const mobileTitleAliases: Record<string, string> = {
+  "Discovery & Planning": "Discovery",
+  "AI & ML Engineering": "AI & ML",
+  "Full-Stack Development": "Full-stack",
+  "Automation & Agentic Systems": "Automation",
+  "Model & Tool Orchestration": "Orchestration",
+  "Training & Tuning": "Training",
+  "Data Processing": "Data",
+  "Model Selection": "Models",
+  "Model Serving": "Serving",
+  "Prompt Design": "Prompts",
+  "Evals & Safety": "Evals",
+  "AI Systems Ready": "AI Ready",
+  "Process Mapping": "Mapping",
+  "Test & Launch": "Launch",
+  "Production-ready": "Production",
+  "Data Layer": "Data",
+};
+
+function displayTitle(title: string, dense: boolean) {
+  if (!dense) return title;
+  return mobileTitleAliases[title] ?? title;
+}
+
 function FlowPath({
   d,
   delay = 0,
   gradientId,
   drawn,
+  strokeWidth = 2.25,
 }: {
   d: string;
   delay?: number;
   gradientId: string;
   drawn: boolean;
+  strokeWidth?: number;
 }) {
   return (
     <g>
@@ -85,7 +140,7 @@ function FlowPath({
         d={d}
         fill="none"
         stroke="rgba(0,145,255,0.14)"
-        strokeWidth="2.5"
+        strokeWidth={strokeWidth + 0.25}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -93,7 +148,7 @@ function FlowPath({
         d={d}
         fill="none"
         stroke={`url(#${gradientId})`}
-        strokeWidth="2.25"
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
         initial={{ pathLength: 0, opacity: 0 }}
@@ -147,7 +202,7 @@ function smoothPath(centers: Pt[], radii: number[]): string {
     const dx = b.x - a.x;
     const dy = b.y - a.y;
     const dist = Math.hypot(dx, dy) || 1;
-    const handle = Math.min(Math.max(32, dist * 0.38), dist * 0.5);
+    const handle = Math.min(Math.max(28, dist * 0.38), dist * 0.5);
 
     let c1x: number;
     let c1y: number;
@@ -187,33 +242,65 @@ function NodeDisc({
   final = false,
   hub = false,
   merge = false,
+  dense = false,
 }: {
   icon: string;
   index: number;
   final?: boolean;
   hub?: boolean;
   merge?: boolean;
+  dense?: boolean;
 }) {
   const Icon = icon !== "logo" ? iconMap[icon] : undefined;
-  const shell = final
-    ? "size-[5.5rem]"
-    : merge
+  const shell = dense
+    ? final
       ? "size-[4.75rem]"
-      : hub
+      : merge
         ? "size-[4.25rem]"
-        : "size-[3.5rem]";
-  const disc = final
-    ? "size-[4.25rem]"
-    : merge
-      ? "size-[3.5rem]"
-      : hub
-        ? "size-[3.15rem]"
-        : "size-[2.6rem]";
-  const iconPx = final ? 28 : merge ? 22 : hub ? 18 : 15;
+        : hub
+          ? "size-[4rem]"
+          : "size-[3.4rem]"
+    : final
+      ? "size-[5.5rem]"
+      : merge
+        ? "size-[4.75rem]"
+        : hub
+          ? "size-[4.25rem]"
+          : "size-[3.5rem]";
+  const disc = dense
+    ? final
+      ? "size-[3.6rem]"
+      : merge
+        ? "size-[3.2rem]"
+        : hub
+          ? "size-[3rem]"
+          : "size-[2.55rem]"
+    : final
+      ? "size-[4.25rem]"
+      : merge
+        ? "size-[3.5rem]"
+        : hub
+          ? "size-[3.15rem]"
+          : "size-[2.6rem]";
+  const iconPx = dense
+    ? final
+      ? 26
+      : merge
+        ? 20
+        : hub
+          ? 17
+          : 15
+    : final
+      ? 28
+      : merge
+        ? 22
+        : hub
+          ? 18
+          : 15;
   const fill = final || merge ? "#0091ff" : discFills[index % discFills.length];
 
   return (
-    <div className={`relative flex items-center justify-center ${shell}`}>
+    <div className={`relative flex shrink-0 items-center justify-center ${shell}`}>
       <div
         className="absolute inset-[10%] rounded-full border border-dashed border-primary/20"
         aria-hidden
@@ -252,75 +339,44 @@ function NodeDisc({
   );
 }
 
-type PlacedNode = {
-  key: string;
-  x: number;
-  y: number;
-  title: string;
-  icon: string;
-  index: number;
-  delay: number;
-  final?: boolean;
-  hub?: boolean;
-  merge?: boolean;
-};
-
-export function MultiPathBuildFlow({
-  cta,
+function buildFlowGraph({
+  orientation,
+  progress,
+  lanes,
+  radiusScale = 1,
 }: {
-  cta?: { label: string; href: string };
-} = {}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-  const [ctaDelay, setCtaDelay] = useState(CONVERGENCE_COMPLETE_DELAY);
+  orientation: "horizontal" | "vertical";
+  progress: ProgressAxis;
+  lanes: LaneAxis;
+  radiusScale?: number;
+}) {
   const { start, branches, end } = howWeBuild;
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1280px)");
-    const sync = () =>
-      setCtaDelay(mq.matches ? CONVERGENCE_COMPLETE_DELAY : 0.45);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
-
   const aiBranch = branches.find((b) => "subPaths" in b && b.subPaths);
   const simpleBranches = branches.filter(
     (b) => !("subPaths" in b && b.subPaths),
   );
-  const W = 1280;
-  const H = 620;
-  const COL = {
-    start: 70,
-    branch: 195,
-    sub: 310,
-    steps: [430, 545, 660, 775, 890] as const,
-    join: 1025,
-    prod: 1200,
-  } as const;
 
-  const ROW = {
-    ml: 95,
-    genai: 230,
-    stack: 385,
-    auto: 530,
-  } as const;
-  const aiHubY = (ROW.ml + ROW.genai) / 2;
-  const startPt = { x: COL.start, y: (aiHubY + ROW.stack + ROW.auto) / 3 };
-  const endPt = { x: COL.prod, y: startPt.y };
+  const pt = (progressValue: number, laneValue: number): Pt =>
+    orientation === "horizontal"
+      ? { x: progressValue, y: laneValue }
+      : { x: laneValue, y: progressValue };
+
+  const aiHubLane = (lanes.ml + lanes.genai) / 2;
+  const startLane = (aiHubLane + lanes.stack + lanes.auto) / 3;
+  const startPt = pt(progress.start, startLane);
+  const endPt = pt(progress.prod, startLane);
   const R = {
-    start: radiusFor("start"),
-    hub: radiusFor("hub"),
-    step: radiusFor("step"),
-    merge: radiusFor("merge"),
-    end: radiusFor("end"),
+    start: radiusFor("start") * radiusScale,
+    hub: radiusFor("hub") * radiusScale,
+    step: radiusFor("step") * radiusScale,
+    merge: radiusFor("merge") * radiusScale,
+    end: radiusFor("end") * radiusScale,
   };
 
   const nodes: PlacedNode[] = [
     {
       key: "start",
-      x: startPt.x,
-      y: startPt.y,
+      ...startPt,
       title: start.title,
       icon: start.icon,
       index: 0,
@@ -329,16 +385,17 @@ export function MultiPathBuildFlow({
     },
   ];
   const paths: { d: string; delay: number }[] = [];
+
   if (
     aiBranch &&
     "subPaths" in aiBranch &&
     aiBranch.subPaths &&
     aiBranch.merge
   ) {
+    const hubPt = pt(progress.branch, aiHubLane);
     nodes.push({
       key: "hub-ai-ml",
-      x: COL.branch,
-      y: aiHubY,
+      ...hubPt,
       title: aiBranch.title,
       icon: aiBranch.icon,
       index: 1,
@@ -346,15 +403,14 @@ export function MultiPathBuildFlow({
       delay: 0.1,
     });
     paths.push({
-      d: smoothPath([startPt, { x: COL.branch, y: aiHubY }], [R.start, R.hub]),
+      d: smoothPath([startPt, hubPt], [R.start, R.hub]),
       delay: 0.08,
     });
 
-    const mergePt = { x: COL.join, y: aiHubY };
+    const mergePt = pt(progress.join, aiHubLane);
     nodes.push({
       key: "merge-ai",
-      x: mergePt.x,
-      y: mergePt.y,
+      ...mergePt,
       title: aiBranch.merge.title,
       icon: aiBranch.merge.icon,
       index: 2,
@@ -363,12 +419,11 @@ export function MultiPathBuildFlow({
     });
 
     aiBranch.subPaths.forEach((sub, si) => {
-      const y = si === 0 ? ROW.ml : ROW.genai;
-      const subPt = { x: COL.sub, y };
+      const lane = si === 0 ? lanes.ml : lanes.genai;
+      const subPt = pt(progress.sub, lane);
       nodes.push({
         key: `sub-${sub.id}`,
-        x: subPt.x,
-        y: subPt.y,
+        ...subPt,
         title: sub.title,
         icon: sub.icon,
         index: 3 + si,
@@ -376,22 +431,29 @@ export function MultiPathBuildFlow({
         delay: 0.18 + si * 0.06,
       });
       paths.push({
-        d: smoothPath([{ x: COL.branch, y: aiHubY }, subPt], [R.hub, R.hub]),
+        d: smoothPath([hubPt, subPt], [R.hub, R.hub]),
         delay: 0.16 + si * 0.06,
       });
 
-      const lane: Pt[] = [subPt, ...COL.steps.map((x) => ({ x, y })), mergePt];
-      const laneR = [R.hub, ...COL.steps.map(() => R.step), R.merge];
+      const lanePts: Pt[] = [
+        subPt,
+        ...progress.steps.map((step) => pt(step, lane)),
+        mergePt,
+      ];
+      const laneR = [R.hub, ...progress.steps.map(() => R.step), R.merge];
       paths.push({
-        d: smoothPath(lane, laneR),
+        d: smoothPath(lanePts, laneR),
         delay: 0.28 + si * 0.08,
       });
 
       sub.steps.forEach((step, ti) => {
+        const stepPt = pt(
+          progress.steps[ti] ?? progress.steps[progress.steps.length - 1],
+          lane,
+        );
         nodes.push({
           key: `${sub.id}-${ti}`,
-          x: COL.steps[ti] ?? COL.steps[COL.steps.length - 1],
-          y,
+          ...stepPt,
           title: step.title,
           icon: step.icon,
           index: 5 + si * 5 + ti,
@@ -405,15 +467,15 @@ export function MultiPathBuildFlow({
       delay: 0.9,
     });
   }
-  const simpleYs = [ROW.stack, ROW.auto];
+
+  const simpleLanes = [lanes.stack, lanes.auto];
   simpleBranches.forEach((branch, bi) => {
     if (!("steps" in branch) || !branch.steps) return;
-    const y = simpleYs[bi] ?? ROW.stack;
-    const hubPt = { x: COL.branch, y };
+    const lane = simpleLanes[bi] ?? lanes.stack;
+    const hubPt = pt(progress.branch, lane);
     nodes.push({
       key: `hub-${branch.id}`,
-      x: hubPt.x,
-      y: hubPt.y,
+      ...hubPt,
       title: branch.title,
       icon: branch.icon,
       index: 10 + bi,
@@ -425,12 +487,12 @@ export function MultiPathBuildFlow({
       delay: 0.1 + bi * 0.08,
     });
 
-    const stepPts = COL.steps.map((x) => ({ x, y }));
-    const joinPt = { x: COL.join, y };
+    const stepPts = progress.steps.map((step) => pt(step, lane));
+    const joinPt = pt(progress.join, lane);
     paths.push({
       d: smoothPath(
         [hubPt, ...stepPts, joinPt],
-        [R.hub, ...COL.steps.map(() => R.step), 0],
+        [R.hub, ...progress.steps.map(() => R.step), 0],
       ),
       delay: 0.26 + bi * 0.08,
     });
@@ -440,10 +502,13 @@ export function MultiPathBuildFlow({
     });
 
     branch.steps.forEach((step, ti) => {
+      const stepPt = pt(
+        progress.steps[ti] ?? progress.steps[progress.steps.length - 1],
+        lane,
+      );
       nodes.push({
         key: `${branch.id}-${ti}`,
-        x: COL.steps[ti] ?? COL.steps[COL.steps.length - 1],
-        y,
+        ...stepPt,
         title: step.title,
         icon: step.icon,
         index: 12 + bi * 6 + ti,
@@ -454,8 +519,7 @@ export function MultiPathBuildFlow({
 
   nodes.push({
     key: "end",
-    x: endPt.x,
-    y: endPt.y,
+    ...endPt,
     title: end.title,
     icon: end.icon,
     index: 0,
@@ -463,46 +527,74 @@ export function MultiPathBuildFlow({
     delay: 0.98,
   });
 
-  const grad = "flow-multipath";
+  return { nodes, paths };
+}
 
+function FlowCanvas({
+  width,
+  height,
+  nodes,
+  paths,
+  inView,
+  gradientId,
+  dense = false,
+  gradientAxis = "horizontal",
+}: {
+  width: number;
+  height: number;
+  nodes: PlacedNode[];
+  paths: { d: string; delay: number }[];
+  inView: boolean;
+  gradientId: string;
+  dense?: boolean;
+  gradientAxis?: "horizontal" | "vertical";
+}) {
   return (
-    <div ref={ref} className="w-full">
-      <div
-        className="relative hidden w-full xl:block"
-        style={{ aspectRatio: `${W} / ${H}` }}
+    <div className="relative w-full" style={{ aspectRatio: `${width} / ${height}` }}>
+      <svg
+        className="pointer-events-none absolute inset-0 h-full w-full"
+        viewBox={`0 0 ${width} ${height}`}
+        fill="none"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden
       >
-        <svg
-          className="pointer-events-none absolute inset-0 h-full w-full"
-          viewBox={`0 0 ${W} ${H}`}
-          fill="none"
-          preserveAspectRatio="none"
-          aria-hidden
-        >
-          <defs>
-            <linearGradient id={grad} x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(0,145,255,0.2)" />
-              <stop offset="50%" stopColor="rgba(0,145,255,0.95)" />
-              <stop offset="100%" stopColor="rgba(0,145,255,0.35)" />
-            </linearGradient>
-          </defs>
-          {paths.map((p, i) => (
-            <FlowPath
-              key={i}
-              d={p.d}
-              delay={p.delay}
-              gradientId={grad}
-              drawn={inView}
-            />
-          ))}
-        </svg>
+        <defs>
+          <linearGradient
+            id={gradientId}
+            x1="0%"
+            y1="0%"
+            x2={gradientAxis === "horizontal" ? "100%" : "0%"}
+            y2={gradientAxis === "horizontal" ? "0%" : "100%"}
+          >
+            <stop offset="0%" stopColor="rgba(0,145,255,0.2)" />
+            <stop offset="50%" stopColor="rgba(0,145,255,0.95)" />
+            <stop offset="100%" stopColor="rgba(0,145,255,0.35)" />
+          </linearGradient>
+        </defs>
+        {paths.map((p, i) => (
+          <FlowPath
+            key={i}
+            d={p.d}
+            delay={p.delay}
+            gradientId={gradientId}
+            drawn={inView}
+            strokeWidth={dense ? 2 : 2.25}
+          />
+        ))}
+      </svg>
 
-        {nodes.map((node) => (
+      {nodes.map((node) => {
+        const sideLabel =
+          dense && !node.hub && !node.merge && !node.final;
+        const labelLeft = sideLabel && node.x >= width / 2;
+
+        return (
           <div
             key={node.key}
             className="absolute -translate-x-1/2 -translate-y-1/2"
             style={{
-              left: `${(node.x / W) * 100}%`,
-              top: `${(node.y / H) * 100}%`,
+              left: `${(node.x / width) * 100}%`,
+              top: `${(node.y / height) * 100}%`,
             }}
           >
             <motion.div
@@ -523,102 +615,118 @@ export function MultiPathBuildFlow({
                 final={node.final}
                 hub={node.hub}
                 merge={node.merge}
+                dense={dense}
               />
               <p
-                className={`absolute top-full left-1/2 w-[6.5rem] -translate-x-1/2 pt-2 text-center text-[10px] leading-tight font-medium tracking-tight ${
+                className={`absolute font-medium tracking-tight leading-tight ${
                   node.final || node.merge ? "text-primary" : "text-white/90"
+                } ${
+                  dense
+                    ? sideLabel
+                      ? `top-1/2 w-[3.9rem] -translate-y-1/2 text-[10px] ${
+                          labelLeft
+                            ? "right-full mr-1 text-right"
+                            : "left-full ml-1 text-left"
+                        }`
+                      : "top-full left-1/2 w-[5.5rem] -translate-x-1/2 pt-1 text-center text-[10px]"
+                    : "top-full left-1/2 w-[6.5rem] -translate-x-1/2 pt-2 text-center text-[10px]"
                 }`}
               >
-                {node.title}
+                {displayTitle(node.title, dense)}
               </p>
             </motion.div>
           </div>
-        ))}
+        );
+      })}
+    </div>
+  );
+}
+
+export function MultiPathBuildFlow({
+  cta,
+}: {
+  cta?: { label: string; href: string };
+} = {}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [ctaDelay, setCtaDelay] = useState(CONVERGENCE_COMPLETE_DELAY);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1280px)");
+    const sync = () =>
+      setCtaDelay(mq.matches ? CONVERGENCE_COMPLETE_DELAY : 0.45);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  const desktop = buildFlowGraph({
+    orientation: "horizontal",
+    progress: {
+      start: 70,
+      branch: 195,
+      sub: 310,
+      steps: [430, 545, 660, 775, 890],
+      join: 1025,
+      prod: 1200,
+    },
+    lanes: {
+      ml: 95,
+      genai: 230,
+      stack: 385,
+      auto: 530,
+    },
+  });
+
+  const mobile = buildFlowGraph({
+    orientation: "vertical",
+    radiusScale: 0.64,
+    progress: {
+      start: 34,
+      branch: 96,
+      sub: 148,
+      steps: [196, 236, 276, 316, 356],
+      join: 412,
+      prod: 472,
+    },
+    lanes: {
+      ml: 54,
+      genai: 136,
+      stack: 244,
+      auto: 326,
+    },
+  });
+
+  return (
+    <div ref={ref} className="w-full">
+      <div className="relative hidden w-full xl:block">
+        <FlowCanvas
+          width={1280}
+          height={620}
+          nodes={desktop.nodes}
+          paths={desktop.paths}
+          inView={inView}
+          gradientId="flow-multipath"
+          gradientAxis="horizontal"
+        />
       </div>
-      <div className="flex flex-col gap-6 xl:hidden">
-        <div className="flex flex-col items-center gap-2">
-          <NodeDisc icon={start.icon} index={0} hub />
-          <p className="text-xs font-medium text-white/90">{start.title}</p>
-        </div>
 
-        {aiBranch &&
-          "subPaths" in aiBranch &&
-          aiBranch.subPaths &&
-          aiBranch.merge && (
-            <div className="rounded-2xl border border-white/10 bg-card-bg/40 p-4">
-              <div className="mb-4 flex items-center gap-2.5">
-                <NodeDisc icon={aiBranch.icon} index={1} hub />
-                <p className="text-sm font-medium text-white">
-                  {aiBranch.title}
-                </p>
-              </div>
-              <div className="flex flex-col gap-4">
-                {aiBranch.subPaths.map((sub, si) => (
-                  <div key={sub.id}>
-                    <p className="mb-2 text-[11px] font-semibold tracking-wide text-primary uppercase">
-                      {sub.title}
-                    </p>
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                      {sub.steps.map((step, ti) => (
-                        <div
-                          key={step.title}
-                          className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1"
-                        >
-                          <NodeDisc icon={step.icon} index={si + ti} />
-                          <p className="text-center text-[9px] leading-tight text-white/90">
-                            {step.title}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex flex-col items-center gap-1.5">
-                <NodeDisc icon={aiBranch.merge.icon} index={0} merge />
-                <p className="text-[11px] font-medium text-primary">
-                  {aiBranch.merge.title}
-                </p>
-              </div>
-            </div>
-          )}
-
-        {simpleBranches.map((branch, bi) =>
-          "steps" in branch && branch.steps ? (
-            <div
-              key={branch.id}
-              className="rounded-2xl border border-white/10 bg-card-bg/40 p-4"
-            >
-              <div className="mb-3 flex items-center gap-2.5">
-                <NodeDisc icon={branch.icon} index={bi + 2} hub />
-                <p className="text-sm font-medium text-white">{branch.title}</p>
-              </div>
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {branch.steps.map((step, ti) => (
-                  <div
-                    key={step.title}
-                    className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1"
-                  >
-                    <NodeDisc icon={step.icon} index={bi + ti} />
-                    <p className="text-center text-[9px] leading-tight text-white/90">
-                      {step.title}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null,
-        )}
-
-        <div className="flex flex-col items-center gap-2">
-          <NodeDisc icon={end.icon} index={0} final />
-          <p className="text-xs font-medium text-primary">{end.title}</p>
-        </div>
+      <div className="relative -mx-1 w-[calc(100%+0.5rem)] xl:hidden">
+        <FlowCanvas
+          width={380}
+          height={540}
+          nodes={mobile.nodes}
+          paths={mobile.paths}
+          inView={inView}
+          gradientId="flow-multipath-mobile"
+          gradientAxis="vertical"
+          dense
+        />
       </div>
 
       {cta && (
         <motion.div
-          className="mt-6 flex justify-center xl:mt-10"
+          className="mt-4 flex justify-center sm:mt-6 xl:mt-10"
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{

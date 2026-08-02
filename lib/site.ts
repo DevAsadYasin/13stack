@@ -3,6 +3,7 @@ export const siteConfig = {
   description:
     "13Stack designs, builds, and ships production AI systems, full-stack products, and agentic automation.",
   defaultTitle: "13Stack | AI Systems and Products",
+  contactEmail: "hello@13stack.com",
 };
 
 export function getSiteUrl() {

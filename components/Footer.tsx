@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import { footer, newsletter } from "@/lib/mock-data";
+import { siteConfig } from "@/lib/site";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { RevealGroup, RevealItem } from "@/components/ui/Reveal";
 
@@ -57,6 +58,12 @@ export function Footer() {
               {footer.tagline}
             </p>
             <p className="mt-2 text-sm text-text-03">{footer.location}</p>
+            <a
+              href={`mailto:${siteConfig.contactEmail}`}
+              className="mt-3 inline-flex text-sm font-medium text-white transition-colors hover:text-primary"
+            >
+              {siteConfig.contactEmail}
+            </a>
           </RevealItem>
 
           <RevealItem className="grid flex-1 grid-cols-2 gap-10 sm:gap-16 lg:max-w-md">

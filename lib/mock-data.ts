@@ -11,11 +11,17 @@ export const navigation = {
 };
 
 export const hero = {
+  eyebrow: "AI systems & products, engineered end to end",
   title: ["Ideas, Engineered", "Into Intelligence"],
   subtitle: [
     "We build AI systems and products that actually ship,",
     "not prototypes that stall at the pitch deck.",
     "Engineering-first. AI-native. Built to run in production.",
+  ],
+  points: [
+    { label: "AI & ML", detail: "Models that ship" },
+    { label: "Full-stack", detail: "UI to infrastructure" },
+    { label: "Automation", detail: "Agents in production" },
   ],
   cta: "Book a consultation",
 };
@@ -1377,21 +1383,40 @@ export const aboutPage = {
 };
 
 export const contactPage = {
-  eyebrow: "GET IN TOUCH",
-  title: "Book a consultation",
+  eyebrow: "Consultation",
+  title: "Tell us what you are building",
   subtitle:
-    "Tell us what you are building. We will reply with next steps, usually within one business day.",
+    "Share the problem, the constraints, and where you want to land. We will reply with clear next steps — usually within one business day.",
+  emailLabel: "Email",
+  responseLabel: "Response time",
+  responseValue: "Within one business day",
+  points: [
+    {
+      label: "Discovery first",
+      detail: "Goals, constraints, and the fastest path to ship.",
+    },
+    {
+      label: "Real reply",
+      detail: "A person writes back — no auto-pitch sequences.",
+    },
+    {
+      label: "Clear next steps",
+      detail: "Scope, approach, or a short call if that helps more.",
+    },
+  ],
   form: {
     nameLabel: "Name",
-    emailLabel: "Email",
+    emailLabel: "Work email",
     companyLabel: "Company",
     companyOptional: "Optional",
     messageLabel: "What are you building?",
+    messagePlaceholder:
+      "Product idea, AI system, automation need, timeline, and anything already decided…",
     submitLabel: "Book a consultation",
     submittingLabel: "Sending…",
     successMessage:
-      "Thanks. We received your note and will get back to you soon.",
-    note: "No spam, no auto-replies. A real person will get back to you.",
+      "Thanks — we received your note and will get back to you soon.",
+    note: "Prefer email? Write us directly and we will take it from there.",
     newsletterStudio: "Send me the 13Stack build log and studio updates.",
     newsletterSkedvio: "Also send Skedvio product updates.",
   },
