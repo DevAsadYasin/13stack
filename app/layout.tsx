@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { getSiteUrl, siteConfig } from "@/lib/site";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -47,6 +48,7 @@ export default function RootLayout({
         <Navigation />
         {children}
         <Footer />
+        <Analytics />
       </body>
     </html>
   );
